@@ -64,6 +64,13 @@
             android:shrinkColumns="*"
             android:background="@drawable/festival_table"/>
 
+        <fragment
+            android:layout_width="match_parent"
+            android:layout_height="350dp"
+            android:id="@+id/map"
+            android:layout_marginBottom="50dp"
+            android:name="com.google.android.gms.maps.SupportMapFragment"/>
+
         <!--food-->
         <RelativeLayout
             android:layout_width="match_parent"

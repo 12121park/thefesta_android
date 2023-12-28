@@ -6,27 +6,24 @@ import android.content.Intent
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Typeface
-import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.text.method.LinkMovementMethod
 import android.util.Log
 import android.util.TypedValue
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.Button
 import android.widget.LinearLayout
-import android.widget.RelativeLayout
 import android.widget.TableLayout
 import android.widget.TableRow
 import android.widget.TextView
 import android.widget.Toast
-import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.view.forEach
+import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
@@ -42,16 +39,22 @@ import com.example.thefesta.model.festival.FestivalReplyDTO
 import com.example.thefesta.model.festival.FestivalReplyResponse
 import com.example.thefesta.model.festival.FestivalResponse
 import com.example.thefesta.model.festival.PageDTO
-import com.example.thefesta.model.member.MemberChangeDTO
 import com.example.thefesta.model.member.MemberDTO
 import com.example.thefesta.retrofit.FestivalClient
 import com.example.thefesta.service.IFestivalService
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
+import com.google.android.gms.maps.OnMapReadyCallback
+import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.UiSettings
+import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MarkerOptions
 import com.tbuonomo.viewpagerdotsindicator.DotsIndicator
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 
-class FestivalDetail : Fragment() {
+class FestivalDetail : Fragment(), OnMapReadyCallback {
 
     private lateinit var binding: FragmentFestivalDetailBinding
     private val festivalService: IFestivalService = FestivalClient.retrofit.create(IFestivalService::class.java)
@@ -63,6 +66,7 @@ class FestivalDetail : Fragment() {
     private var total = 1
     private val id = MainActivity.prefs.getString("id", "")
     private var fDtoItemNum = 0
+    private var mMap: GoogleMap? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -74,6 +78,9 @@ class FestivalDetail : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
+        mapFragment.getMapAsync(this)
 
         val contentid = arguments?.getString(ARG_CONTENT_ID)
         paginationLayout = view.findViewById(R.id.replyPaginationLayout)
@@ -138,7 +145,10 @@ class FestivalDetail : Fragment() {
                         replyList(contentid, page)
 
                         if (userInfo != null) {
-                            Glide.with(binding.userImg.context).load(userInfo!!.profileImg).into(binding.userImg)
+                            val profile = userInfo!!.profileImg
+                            val profileImg = "http://192.168.4.40:9090/resources/fileUpload/" + profile;
+                            Log.d("testtttt", "${profileImg}")
+                            Glide.with(binding.userImg.context).load(profileImg).into(binding.userImg)
                             binding.userNick.text = userInfo!!.nickname
                         }
 
@@ -181,6 +191,54 @@ class FestivalDetail : Fragment() {
             })
         }
 
+    }
+
+    override fun onMapReady(googleMap: GoogleMap) {
+        mMap = googleMap
+
+        val contentId = arguments?.getString(ARG_CONTENT_ID)
+
+        if (contentId != null) {
+            val call: Call<FestivalResponse> = festivalService.getFesivalDetail(contentid = contentId)
+            call.enqueue(object : Callback<FestivalResponse> {
+                override fun onResponse(call: Call<FestivalResponse>, response: Response<FestivalResponse>) {
+                    if (response.isSuccessful) {
+                        val festivalResponse: FestivalResponse = response.body()!!
+                        val festivalInfo: FestivalItemDTO? = festivalResponse?.fDto
+
+                        // itemDto에서 mapx 및 mapy 값을 가져와서 사용
+
+                        if (festivalInfo != null) {
+                            val mapx = festivalInfo.mapx
+                            val mapy = festivalInfo.mapy
+                            Log.e("FestivalMap", "${mapx}, ${mapy}")
+
+                            val festivalLocation = LatLng(mapy, mapx)
+
+                            val markerOptions = MarkerOptions()
+                            markerOptions.position(festivalLocation)
+                            markerOptions.title(festivalInfo.title)
+
+                            mMap?.addMarker(markerOptions)
+                            mMap?.moveCamera(CameraUpdateFactory.newLatLngZoom(festivalLocation, 17f))
+
+                            val mMapUiSettings: UiSettings = mMap!!.uiSettings
+                            mMapUiSettings.isZoomControlsEnabled = true
+                        }
+
+                    } else {
+                        Log.e("FestivalMap", "Failed to fetch data")
+                    }
+                }
+
+                override fun onFailure(call: Call<FestivalResponse>, t: Throwable) {
+                    Log.e("FestivalMap", "Network request failed", t)
+                    t.printStackTrace()
+                }
+            })
+        } else {
+            Log.e("FestivalMap", "contentId is null or empty")
+        }
     }
 
     private fun getUserInfo(id: String) {

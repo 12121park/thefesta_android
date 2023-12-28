@@ -73,7 +73,10 @@ class ReplyHolder(val binding: FestivalReplyItmeBinding,
     fun bind(reply: FestivalReplyDTO) {
         val id = MainActivity.prefs.getString("id", "")
 
-        Glide.with(binding.festivalReplyUserImg.context).load(reply.profileImg).into(binding.festivalReplyUserImg)
+        val profile = reply.profileImg
+        val profileImg = "http://192.168.4.40:9090/resources/fileUpload/" + profile;
+
+        Glide.with(binding.festivalReplyUserImg.context).load(profileImg).into(binding.festivalReplyUserImg)
 
         binding.festivalReplyUserNick.text = reply.nickname
         binding.festivalReplyContent.text = reply.frcontent
