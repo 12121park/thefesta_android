@@ -14,7 +14,7 @@
         android:background="#6A1B9A"
         android:gravity="center_vertical"
         android:padding="16dp"
-        android:layout_marginTop="50dp">
+        android:layout_marginTop="75dp">
 
         <TextView
             android:id="@+id/header_QuestionNum"
@@ -86,7 +86,7 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerView"
         android:layout_width="match_parent"
-        android:layout_height="585dp"
+        android:layout_height="530dp"
         android:layout_below="@id/adminfesta"
         android:clipChildren="false"
         android:clipToPadding="false"

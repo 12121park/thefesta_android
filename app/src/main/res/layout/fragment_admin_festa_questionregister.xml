@@ -2,7 +2,8 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:layout_marginTop="75dp">
 
     <RelativeLayout
         android:id="@+id/adminDetailDisplay"
@@ -21,7 +22,7 @@
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
-            android:layout_height="550dp"
+            android:layout_height="430dp"
             android:layout_below="@id/admin_FestaQuestionRegister"
             android:fillViewport="true"
             style="@style/NoBorderTextInputLayout">
