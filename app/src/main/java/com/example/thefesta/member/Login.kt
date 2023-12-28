@@ -190,7 +190,7 @@ class Login : Fragment() {
                                             val errorTextView: TextView = view.findViewById(R.id.loginIdError)
                                             errorTextView.text = errorMessage
                                         } else {
-//                                            수정
+                                            stateUpdate(mDto)
                                         }
                                     }
                                 }
@@ -211,7 +211,7 @@ class Login : Fragment() {
                 }
 
                 override fun onFailure(call: Call<MemberDTO>, t: Throwable) {
-                    val errorMessage = "*미가입 된 아이디입니다. 회원가입 후 로그인해주세요."
+                    val errorMessage = "*아이디 또는 비밀번호가 일치하지 않습니다."
                     val errorTextView: TextView = view.findViewById(R.id.loginIdError)
                     errorTextView.text = errorMessage
 
@@ -222,5 +222,23 @@ class Login : Fragment() {
         }
 
         return view
+    }
+
+    private fun stateUpdate(mDto: MemberDTO) {
+        mDto.statecode = "3";
+        val joinCall: Call<Void> = memberService.updateState(mDto)
+        joinCall.enqueue(object : Callback<Void> {
+            override fun onResponse(call: Call<Void>, response: Response<Void>) {
+                if (response.isSuccessful) {
+                    val errorMessage = "*미가입 된 아이디입니다. 회원가입 후 로그인해주세요."
+                    val errorTextView: TextView? = view?.findViewById(R.id.loginIdError)
+                    errorTextView?.text = errorMessage
+                }
+            }
+
+            override fun onFailure(call: Call<Void>, t: Throwable) {
+                Log.e("FragmentJoin", "Retrofit onFailure: ${t.message}", t)
+            }
+        })
     }
 }
